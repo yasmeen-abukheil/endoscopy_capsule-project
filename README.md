@@ -1,1 +1,1 @@
-# haptic_interface-project
+# Endoscopy Capsule Project
