@@ -28,11 +28,11 @@ void moveCartesian (moveit::planning_interface::MoveGroup *group, float dx,float
   waypoints.push_back(targetPose);
   
   moveit_msgs::RobotTrajectory trajectory_msg;
-  group->setPlanningTime(10.0);
+  group->setPlanningTime(5.0);
  
   
   double fraction = group->computeCartesianPath(waypoints,
-                                               0.01,  // eef_step
+                                               0.0001,  // eef_step
                                                0.0,   // jump_threshold
                                                trajectory_msg, false);
   
@@ -60,7 +60,7 @@ void moveCartesian (moveit::planning_interface::MoveGroup *group, float dx,float
   //return(plan);
   group->execute(plan);
 
-  std::cout<<"finito?"<<std::endl;
+  std::cout<<"new position reached"<<std::endl;
 }
 
 
@@ -108,8 +108,14 @@ int main(int argc, char **argv)
 
   moveit::planning_interface::MoveGroup::Plan plan;
   group.setStartStateToCurrentState();
-  group.setPoseReferenceFrame(base_link);
-  group.setEndEffectorLink(eef_link);
+  group.setPoseReferenceFrame("base_link");
+  group.setEndEffectorLink("end_effector");
+  
+  double orientToll = group.getGoalOrientationTolerance();
+  double positionToll = group.getGoalPositionTolerance () ;
+
+  std::cout<<" orientation toll= "<<orientToll<<std::endl;
+  std::cout<<" position tool = "<<positionToll<<std::endl;	
 
   std::vector<geometry_msgs::Pose> waypoints;
 
@@ -147,13 +153,16 @@ joint 5= 0.00067267*/
 //  new cartesian position from keyboard
   ros::Subscriber subscriber = node_handle.subscribe("position", 1000, positionCallback); 
 //  moveCartesian (&group, 0, 0.2, -0.3, 0, 0.6, 0.2)
-  std::cout<<"finito?"<<std::endl;
+  std::cout<<"Waiting for Keyboard inputs"<<std::endl;
   
 
   while (ros::ok()){
 	if(isNewPosition){
-		moveCartesian (&group, robotIncrement[0], robotIncrement[1], robotIncrement[2], robotIncrement[3], 
-				robotIncrement[4], robotIncrement[5]);
+//		moveCartesian (&group, robotIncrement[0], robotIncrement[1], robotIncrement[2],
+//				robotIncrement[3], robotIncrement[4], robotIncrement[5]);
+  		moveCartesian (&group, robotIncrement[0], robotIncrement[1], robotIncrement[2],
+				0.0,0.0,0.0);
+  
 	}
 
   }//*/

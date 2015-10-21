@@ -41,7 +41,7 @@
 #include <tf/transform_broadcaster.h>
 #include <Eigen/Eigen>
 
-#include <lesson_move_group/KeyboardInput.h>
+#include <moveMitsubishArm/KeyboardInput.h>
 
 
 #define KEYCODE_R 0x43 
@@ -61,56 +61,30 @@ private:
 
 
     ros::NodeHandle nh_,ph_, kInp_;
-    double linear_x, linear_y, angular_z ;
     float incX, incY, incZ, incRX, incRY, incRZ;
     ros::Time first_publish_;
     ros::Time last_publish_;
     double l_scale_, a_scale_;
     ros::Publisher vel_pub_;
     ros::Publisher keybInp_;
-    ros::Subscriber pose_sub_, collision_flag  ;
-    double robot_ox;
-    double robot_oz;
-    double robot_oy;
-    void publish(double, double, double);
+    ros::Subscriber pose_sub_ ;
     void publishInc(float, float, float, float, float, float);
-    void poseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
-    double roll, pitch, yaw;
     boost::mutex publish_mutex_;
-
-  //  bool inCollision ;
 
 };
 
 RobotTeleop::RobotTeleop():
     ph_("~"),
-    linear_x(0),
-    linear_y(0),
-    angular_z(0),
     l_scale_(1.0),
     a_scale_(1.0)
 {
     ph_.param("scale_angular", a_scale_, a_scale_);
     ph_.param("scale_linear", l_scale_, l_scale_);
-    vel_pub_ = nh_.advertise<geometry_msgs::TwistStamped>("/uav/cmd_vel", 1);
-    keybInp_ = kInp_.advertise<lesson_move_group::KeyboardInput>("position", 1000); 
-    pose_sub_ = nh_.subscribe("/mavros/vision_pose/pose" ,1, &RobotTeleop::poseCallback, this );
-
-   // collision_flag = nh_.subscribe<std_msgs::Bool>("/collision_flag" , 1, &SlaveController::get_inCollision , this);
-
+    keybInp_ = kInp_.advertise<moveMitsubishArm::KeyboardInput>("position", 1000);
+    //pose_sub_ = nh_.subscribe("/mavros/vision_pose/pose" ,1, &RobotTeleop::poseCallback, this );
 
 }
 
-void RobotTeleop::poseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg)
-{
-    tf::Quaternion q( msg->pose.orientation.x,msg->pose.orientation.y,msg->pose.orientation.z,msg->pose.orientation.w);
-    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);
-    std::cout << "pitch" << pitch << std::endl ; 
-    std::cout << "roll" << roll << std::endl ; 
-    std::cout << "yaw" << yaw << std::endl ; 
-    std::cout << "yaw in degrees: " << yaw * 180 / 3.14  << std::endl ; 
-    
-}
 
 int kfd = 0;
 struct termios cooked, raw;
@@ -129,8 +103,7 @@ int main(int argc, char** argv)
     RobotTeleop keyboard_teleop;
     ros::NodeHandle n;
 
-    //ros::Publisher pub = n.advertise<lesson_move_group::KeyboardInput>("position", 1000); 
-    
+    //std::cout<<"qt funziona";
 
     signal(SIGINT,quit);
 
@@ -155,7 +128,6 @@ void RobotTeleop::keyLoop()
 {
     char c;
 
-
     // get the console in raw mode
     tcgetattr(kfd, &cooked);
     memcpy(&raw, &cooked, sizeof(struct termios));
@@ -165,6 +137,7 @@ void RobotTeleop::keyLoop()
     raw.c_cc[VEOF] = 2;
     tcsetattr(kfd, TCSANOW, &raw);
 
+    puts("  ");
     puts("Reading from keyboard");
     puts("---------------------------");
     puts("Use arrow keys to move the robotic arm.");
@@ -180,9 +153,7 @@ void RobotTeleop::keyLoop()
             exit(-1);
         }
 
-
-        linear_x=linear_y=0;
-	incX =incY =incZ =incRX =incRY =incRZ =0;
+        incX =incY =incZ =incRX =incRY =incRZ =0;
         
         ROS_DEBUG("value: 0x%02X\n", c);
 
@@ -191,120 +162,93 @@ void RobotTeleop::keyLoop()
 	
         case KEYCODE_L:
             ROS_DEBUG("LEFT");
-            angular_z = 0.0;
-            linear_x = 0.0;
-            linear_y = 0.1;
-	    incX = 0.0;
-	    incY = 0.1;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = 0.0;
-	    incRZ = 0.0;
+            incX = 0.0;
+            incY = 0.01;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = 0.0;
+            incRZ = 0.0;
 
 
             break;
         case KEYCODE_R:
             ROS_DEBUG("RIGHT");
-            angular_z = 0.0;
-            linear_x = 0.0;
-            linear_y = -0.1;
-	    incX = 0.0;
-	    incY = -0.1;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = 0.0;
-	    incRZ = 0.0;
+            incX = 0.0;
+            incY = -0.01;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = 0.0;
+            incRZ = 0.0;
 
             break;
         case KEYCODE_U:
             ROS_DEBUG("UP");
-            linear_y = 0.0;
-            angular_z = 0.0;
-            linear_x = 0.1;
-	    incX = 0.1;
-	    incY = 0.0;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = 0.0;
-	    incRZ = 0.0;
+            incX = 0.01;
+            incY = 0.0;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = 0.0;
+            incRZ = 0.0;
 
             break;
         case KEYCODE_D:
             ROS_DEBUG("DOWN");
-            linear_x = -0.1;
-            linear_y = 0.0;
-            angular_z = 0.0;
-	    incX = -0.1;
-	    incY = 0.0;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = 0.0;
-	    incRZ = 0.0;
+            incX = -0.01;
+            incY = 0.0;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = 0.0;
+            incRZ = 0.0;
 
             break;
 
         case '8':
             ROS_DEBUG("rz+");
-            linear_x = 0.0;
-            linear_y = 0.0;
-            angular_z = 0.0;
-	    incX = 0.0;
-	    incY = 0.0;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = 0.0;
-	    incRZ = 0.1;
+            incX = 0.0;
+            incY = 0.0;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = 0.0;
+            incRZ = 0.1;
 
             break;
 
         case '2':
             ROS_DEBUG("rz-");
-            linear_x = 0.0;
-            linear_y = 0.0;
-            angular_z = 0.0;
-	    incX = 0.0;
-	    incY = 0.0;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = 0.0;
-	    incRZ = -0.1;
+            incX = 0.0;
+            incY = 0.0;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = 0.0;
+            incRZ = -0.1;
 
             break;//*/
 
         case '4':
             ROS_DEBUG("ry+");
-            linear_x = 0.0;
-            linear_y = 0.0;
-            angular_z = 0.0;
-	    incX = 0.0;
-	    incY = 0.0;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = 0.1;
-	    incRZ = 0.0;
+            incX = 0.0;
+            incY = 0.0;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = 0.1;
+            incRZ = 0.0;
 
             break;
 
         case '6':
             ROS_DEBUG("ry-");
-            linear_x = 0.0;
-            linear_y = 0.0;
-            angular_z = 0.0;
-	    incX = 0.0;
-	    incY = 0.0;
-	    incZ = 0.0;
-	    incRX = 0.0;
-	    incRY = -0.1;
-	    incRZ = 0.0;
+            incX = 0.0;
+            incY = 0.0;
+            incZ = 0.0;
+            incRX = 0.0;
+            incRY = -0.1;
+            incRZ = 0.0;
 
             break;//*/
 
 
         case KEYCODE_Q:
             ROS_DEBUG("Emergency");
-            linear_x = 0.0;
-            linear_y = 0.0;
-            angular_z = 0.0;
             break;
         }
         boost::mutex::scoped_lock lock(publish_mutex_);
@@ -312,7 +256,6 @@ void RobotTeleop::keyLoop()
             first_publish_ = ros::Time::now();
         }
         last_publish_ = ros::Time::now();
-       // publish(linear_y, linear_x, angular_z);
         publishInc(incX, incY, incZ, incRX, incRY, incRZ);
     }
 
@@ -322,8 +265,7 @@ void RobotTeleop::keyLoop()
 void RobotTeleop::publishInc(float incX,float incY,float incZ, float incRX, float incRY,float incRZ)  
 {
     
-   
-    lesson_move_group::KeyboardInput msg;
+    moveMitsubishArm::KeyboardInput msg;
     msg.header.stamp = ros::Time::now();
 
     msg.x = incX;
@@ -338,27 +280,6 @@ void RobotTeleop::publishInc(float incX,float incY,float incZ, float incRX, floa
     return;
 }
 
-
-
-void RobotTeleop::publish(double linear_y, double linear_x , double angular_z)  
-{
-    geometry_msgs::TwistStamped vel;
-        vel.twist.linear.x = linear_x*cos(yaw ) - linear_y * sin(yaw) ; 
-        vel.twist.linear.y = linear_x*sin (yaw) + linear_y * cos(yaw) ;
-        std::cout << "vel.twist.linear.x" << vel.twist.linear.x << std::endl ;
-        std::cout << "vel.twist.linear.y" << vel.twist.linear.y<< std::endl ;
-        vel.twist.angular.z = angular_z;
-	vel_pub_.publish(vel);
-   
-    /*lesson_move_group::KeyboardInput msg;
-    msg.header.stamp = ros::Time::now();
-    msg.z = angular_z;
-    msg.x = linear_x;
-    msg.y = linear_y;
-    keybInp_.publish(msg);//*/
-   
-    return;
-}
 
 
 
