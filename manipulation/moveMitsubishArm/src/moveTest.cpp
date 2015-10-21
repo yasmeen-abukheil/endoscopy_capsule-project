@@ -10,7 +10,7 @@
 #include <tf/tf.h>
 #include <tf/transform_datatypes.h>
 
-#include <lesson_move_group/KeyboardInput.h>
+#include <moveMitsubishArm/KeyboardInput.h>
 
 
 void moveCartesian (moveit::planning_interface::MoveGroup *group, float dx,float dy,float dz,float rx, float ry,float rz){
