@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="dyn_obs" pkg="haptic_teleoperation" type="dyn_obs" ns="/husky_ns" output="screen"> </node>
+</launch>

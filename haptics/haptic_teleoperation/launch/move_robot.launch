@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="move_robot" pkg="haptic_teleoperation" type="move_robot" ns="/husky_ns" > </node>
+ <!--<node name="prf" pkg="haptic_teleoperation" type="prf" output="screen"> </node>-->
+ <node name="virtulaImpedance" pkg="haptic_teleoperation" type="virtulaImpedance"  
+ output="screen"> </node> 
+
+  <!--  <node name="brf" pkg="haptic_teleoperation" type="brf" output="screen">  </node>   -->
+</launch>

@@ -1,0 +1,5 @@
+nav_msgs/Odometry robot_pose
+haptic_teleoperation/TwistArray obstacles_velocities
+visualization_msgs/Marker potential_field
+
+

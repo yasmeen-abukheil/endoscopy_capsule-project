@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="move_zft" pkg="haptic_teleoperation" type="move_zft" output="screen"> </node>
+</launch>

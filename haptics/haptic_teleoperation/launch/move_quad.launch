@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="move_quad" pkg="haptic_teleoperation" type="move_quad" output="screen"> </node>
+</launch>

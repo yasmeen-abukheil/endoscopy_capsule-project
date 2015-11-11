@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+    <!--<include file="$(find husky_gazebo)/launch/base.urdf.gazebo.launch"/>-->
+     <param name="use_sim_time" value="true" />
+
+    <!-- Send the Husky A200 Robot URDF/XACRO to param server -->
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find husky_description)/urdf/base.urdf.xacro'" />
+
+    <!-- Spawn robot in gazebo -->
+    <node name="spawn_husky_model" pkg="gazebo_ros"  type="spawn_model" args="$(optenv ROBOT_INITIAL_POSE) -unpause -urdf -param robot_description -model mobile_base -x 10 -y 3 -robot_namespace husky_ns " />
+
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher" ns="husky_ns">
+        <param name="publish_frequency" type="double" value="50.0" />
+    </node>
+
+
+
+
+    <include file="$(find haptic_teleoperation)/launch/box.launch"/>
+    <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf" ns="husky_ns" >
+      <rosparam>
+        freq: 10.0
+        sensor_timeout: 1.0
+        publish_tf: true
+        odom_used: true
+        vo_used: true
+        output_frame: odom
+      </rosparam>
+    </node>
+</launch>
